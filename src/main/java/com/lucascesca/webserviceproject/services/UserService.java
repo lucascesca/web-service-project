@@ -2,8 +2,11 @@ package com.lucascesca.webserviceproject.services;
 
 import com.lucascesca.webserviceproject.entities.User;
 import com.lucascesca.webserviceproject.repositories.UserRepository;
+import com.lucascesca.webserviceproject.services.exceptions.DatabaseException;
 import com.lucascesca.webserviceproject.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +31,15 @@ public class UserService {
     }
 
     public void delete(Long id) {
-        repository.deleteById(id);
+        if (findById(id) != null) {
+            try {
+                repository.deleteById(id);
+            } catch (DataIntegrityViolationException e) {
+                throw new DatabaseException(e.getMessage());
+            }
+        } else {
+            throw new ResourceNotFoundException(id);
+        }
     }
 
     public User update(Long id, User user) {
